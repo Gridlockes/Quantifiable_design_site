@@ -7,7 +7,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Share+Tech+Mono&display=swap" rel="stylesheet">
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    html, body { width: 100%; height: 100%; background: #000; overflow: hidden; }
+    html, body { width: 100%; height: 100%; background: #000; overflow: hidden; cursor: pointer; }
     canvas { display: block; position: absolute; top: 0; left: 0; }
 
     /* ── TITLE ── */
@@ -26,8 +26,61 @@
       z-index: 20;
     }
     @keyframes floatTitle {
-      0%,100% { transform: translateY(0px);  text-shadow: 0 0 30px rgba(80,200,255,0.7),0 0 80px rgba(0,140,255,0.4); }
-      50%      { transform: translateY(-10px); text-shadow: 0 0 50px rgba(80,220,255,1),0 0 120px rgba(0,160,255,0.6); }
+      0%,100% { transform: translateY(0px);   text-shadow: 0 0 30px rgba(80,200,255,0.7), 0 0 80px rgba(0,140,255,0.4); }
+      50%      { transform: translateY(-10px); text-shadow: 0 0 50px rgba(80,220,255,1),   0 0 120px rgba(0,160,255,0.6); }
+    }
+
+    /* ── CLICK HINT ── */
+    #hint {
+      position: absolute;
+      bottom: 36px;
+      width: 100%;
+      text-align: center;
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 11px;
+      letter-spacing: 4px;
+      color: rgba(80,200,255,0.4);
+      text-transform: uppercase;
+      pointer-events: none;
+      z-index: 20;
+      transition: opacity 0.6s;
+    }
+    #hint.hidden { opacity: 0; }
+
+    /* ── AUDIO STATUS PILL ── */
+    #audio-status {
+      position: absolute;
+      bottom: 36px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 10px;
+      letter-spacing: 3px;
+      color: rgba(80,200,255,0.55);
+      text-transform: uppercase;
+      pointer-events: none;
+      z-index: 20;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      opacity: 0;
+      transition: opacity 0.5s;
+    }
+    #audio-status.visible { opacity: 1; }
+    #status-dot {
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: rgba(80,200,255,0.4);
+      transition: background 0.3s, box-shadow 0.3s;
+    }
+    #status-dot.playing {
+      background: rgba(80,200,255,1);
+      box-shadow: 0 0 8px rgba(80,200,255,0.8);
+      animation: dotPulse 1.2s ease-in-out infinite;
+    }
+    @keyframes dotPulse {
+      0%,100% { box-shadow: 0 0 4px rgba(80,200,255,0.5); }
+      50%      { box-shadow: 0 0 14px rgba(80,200,255,1); }
     }
 
     /* ── CENTER IMAGE ── */
@@ -35,7 +88,6 @@
       position: absolute;
       top: 50%;
       left: 50%;
-      transform: translate(-50%, -50%);
       width: 180px;
       height: 180px;
       z-index: 15;
@@ -53,7 +105,6 @@
       filter: drop-shadow(0 0 18px rgba(80,200,255,0.8)) drop-shadow(0 0 40px rgba(0,140,255,0.4));
       mix-blend-mode: screen;
     }
-    /* placeholder shown until a real image is dropped in */
     #img-placeholder {
       width: 160px;
       height: 160px;
@@ -70,8 +121,7 @@
       text-transform: uppercase;
       position: relative;
     }
-    /* corner ticks on placeholder */
-    #img-placeholder::before, #img-placeholder::after {
+    #img-placeholder::before {
       content: '';
       position: absolute;
       inset: -1px;
@@ -86,205 +136,10 @@
         linear-gradient(rgba(80,200,255,0.6),rgba(80,200,255,0.6)) bottom right /1px 14px no-repeat;
       pointer-events: none;
     }
-    #img-placeholder::after { display: none; }
     @keyframes imgFloat {
       0%,100% { transform: translate(-50%,-50%) translateY(0px); }
       50%      { transform: translate(-50%,-50%) translateY(-12px); }
     }
-
-    /* ── AUDIO PLAYER ── */
-    #audio-wrap {
-      position: absolute;
-      bottom: 36px;
-      left: 50%;
-      transform: translateX(-50%);
-      z-index: 20;
-      font-family: 'Share Tech Mono', monospace;
-    }
-    .panel {
-      border: 1px solid rgba(80,200,255,0.35);
-      background: rgba(0,10,25,0.6);
-      backdrop-filter: blur(8px);
-      position: relative;
-    }
-    .panel-label {
-      position: absolute;
-      top: -20px;
-      left: 0;
-      font-size: 9px;
-      letter-spacing: 3px;
-      color: rgba(80,200,255,0.55);
-      text-transform: uppercase;
-    }
-    /* corner ticks */
-    .panel::after {
-      content: '';
-      position: absolute;
-      inset: -1px;
-      background:
-        linear-gradient(rgba(80,200,255,0.7),rgba(80,200,255,0.7)) top    left  /12px 1px no-repeat,
-        linear-gradient(rgba(80,200,255,0.7),rgba(80,200,255,0.7)) top    left  /1px 12px no-repeat,
-        linear-gradient(rgba(80,200,255,0.7),rgba(80,200,255,0.7)) top    right /12px 1px no-repeat,
-        linear-gradient(rgba(80,200,255,0.7),rgba(80,200,255,0.7)) top    right /1px 12px no-repeat,
-        linear-gradient(rgba(80,200,255,0.7),rgba(80,200,255,0.7)) bottom left  /12px 1px no-repeat,
-        linear-gradient(rgba(80,200,255,0.7),rgba(80,200,255,0.7)) bottom left  /1px 12px no-repeat,
-        linear-gradient(rgba(80,200,255,0.7),rgba(80,200,255,0.7)) bottom right /12px 1px no-repeat,
-        linear-gradient(rgba(80,200,255,0.7),rgba(80,200,255,0.7)) bottom right /1px 12px no-repeat;
-      pointer-events: none;
-    }
-
-    #audio-player {
-      width: 340px;
-      padding: 14px 18px 12px;
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-    }
-    #track-info {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-    }
-    #track-icon {
-      width: 36px;
-      height: 36px;
-      border: 1px solid rgba(80,200,255,0.4);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      flex-shrink: 0;
-      animation: iconPulse 2s ease-in-out infinite paused;
-    }
-    #track-icon.playing { animation-play-state: running; }
-    @keyframes iconPulse {
-      0%,100% { box-shadow: 0 0 0px rgba(80,200,255,0); border-color: rgba(80,200,255,0.4); }
-      50%      { box-shadow: 0 0 14px rgba(80,200,255,0.5); border-color: rgba(80,200,255,0.9); }
-    }
-    #track-meta { flex: 1; overflow: hidden; }
-    #track-name {
-      font-size: 12px;
-      letter-spacing: 2px;
-      color: rgba(80,200,255,0.9);
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-    #track-file {
-      font-size: 9px;
-      letter-spacing: 1px;
-      color: rgba(80,200,255,0.4);
-      margin-top: 3px;
-    }
-
-    /* waveform bars */
-    #waveform {
-      display: flex;
-      align-items: center;
-      gap: 2px;
-      height: 22px;
-    }
-    .bar {
-      width: 3px;
-      background: rgba(80,200,255,0.5);
-      border-radius: 1px;
-      transform-origin: bottom;
-      animation: none;
-    }
-    .bar.active { background: rgba(80,200,255,0.9); }
-    @keyframes wave {
-      0%,100% { transform: scaleY(0.2); }
-      50%      { transform: scaleY(1); }
-    }
-
-    /* controls row */
-    #controls {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-    #play-btn {
-      width: 30px;
-      height: 30px;
-      border: 1px solid rgba(80,200,255,0.5);
-      background: rgba(80,200,255,0.08);
-      color: rgba(80,200,255,0.9);
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      transition: background 0.2s;
-      flex-shrink: 0;
-      padding: 0;
-    }
-    #play-btn:hover { background: rgba(80,200,255,0.18); }
-    #play-btn svg { display: block; }
-
-    /* seek bar */
-    #seek-wrap { flex: 1; display: flex; flex-direction: column; gap: 4px; }
-    #seek {
-      -webkit-appearance: none;
-      appearance: none;
-      width: 100%;
-      height: 2px;
-      background: rgba(80,200,255,0.2);
-      outline: none;
-      cursor: pointer;
-    }
-    #seek::-webkit-slider-thumb {
-      -webkit-appearance: none;
-      width: 10px; height: 10px;
-      border-radius: 50%;
-      background: rgba(80,200,255,0.9);
-      cursor: pointer;
-      margin-top: -4px;
-    }
-    #seek::-webkit-slider-runnable-track { height: 2px; }
-    #time-row {
-      display: flex;
-      justify-content: space-between;
-      font-size: 9px;
-      letter-spacing: 1px;
-      color: rgba(80,200,255,0.4);
-    }
-
-    /* volume */
-    #vol-wrap { display: flex; align-items: center; gap: 6px; }
-    #vol-icon { color: rgba(80,200,255,0.5); }
-    #vol {
-      -webkit-appearance: none;
-      appearance: none;
-      width: 60px; height: 2px;
-      background: rgba(80,200,255,0.2);
-      outline: none;
-      cursor: pointer;
-    }
-    #vol::-webkit-slider-thumb {
-      -webkit-appearance: none;
-      width: 8px; height: 8px;
-      border-radius: 50%;
-      background: rgba(80,200,255,0.7);
-      cursor: pointer;
-      margin-top: -3px;
-    }
-
-    #status-row {
-      display: flex;
-      justify-content: space-between;
-      font-size: 9px;
-      letter-spacing: 2px;
-      color: rgba(80,200,255,0.35);
-      text-transform: uppercase;
-    }
-    #status-dot {
-      display: inline-block;
-      width: 5px; height: 5px;
-      border-radius: 50%;
-      background: rgba(80,200,255,0.35);
-      margin-right: 5px;
-      vertical-align: middle;
-      transition: background 0.3s;
-    }
-    #status-dot.on { background: rgba(80,200,255,0.9); box-shadow: 0 0 6px rgba(80,200,255,0.7); }
   </style>
 </head>
 <body>
@@ -292,12 +147,10 @@
   <div id="title">GRIDLOCK</div>
   <canvas id="c"></canvas>
 
-  <!-- ── CENTER IMAGE ──
-       To use your own image:  replace the src below.
-       For a transparent background use a PNG.
-       For a JPEG with white background, mix-blend-mode:screen will
-       dissolve the white and leave the subject floating.
-  -->
+  <!-- CENTER IMAGE
+       Uncomment the <img> tag and set src to your file.
+       PNG with transparency = cleanest result.
+       JPEG with white bg: mix-blend-mode:screen dissolves the white. -->
   <div id="center-image">
     <!-- <img src="your-image.jpg" alt="subject"> -->
     <div id="img-placeholder">
@@ -306,74 +159,23 @@
         <circle cx="13" cy="13" r="4" stroke="rgba(80,200,255,0.6)" stroke-width="1"/>
         <polyline points="1,27 13,15 21,23 29,14 39,27" stroke="rgba(80,200,255,0.6)" stroke-width="1" fill="none"/>
       </svg>
-      <span>Jabber.png</span>
+      <span>Jabber.jpg</span>
       <span style="font-size:8px;opacity:0.5">replace src</span>
     </div>
   </div>
 
-  <!-- ── AUDIO PLAYER ──
-       To use your own audio: replace src in the <audio> tag below.
-       Supported formats: .mp3  .ogg  .wav  .flac
-  -->
-  <div id="audio-wrap">
-    <span class="panel-label">audio_feed // track_01</span>
-    <div class="panel" id="audio-player">
+  <!-- click hint -->
+  <div id="hint">[ click anywhere to play ]</div>
 
-      <div id="track-info">
-        <div id="track-icon">
-          <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-            <circle cx="8" cy="8" r="7" stroke="rgba(80,200,255,0.7)" stroke-width="1"/>
-            <circle cx="8" cy="8" r="2.5" fill="rgba(80,200,255,0.7)"/>
-            <line x1="8" y1="1" x2="8" y2="4" stroke="rgba(80,200,255,0.7)" stroke-width="1"/>
-          </svg>
-        </div>
-        <div id="track-meta">
-          <div id="track-name">sixieme</div>
-          <div id="track-file">audio.mp3 &nbsp;·&nbsp; 00:00 total</div>
-        </div>
-      </div>
-
-      <div id="waveform"></div>
-
-      <div id="controls">
-        <button id="play-btn" aria-label="Play / Pause">
-          <svg id="icon-play" width="12" height="12" viewBox="0 0 12 12">
-            <polygon points="2,1 11,6 2,11" fill="rgba(80,200,255,0.9)"/>
-          </svg>
-          <svg id="icon-pause" width="12" height="12" viewBox="0 0 12 12" style="display:none">
-            <rect x="2" y="1" width="3" height="10" fill="rgba(80,200,255,0.9)"/>
-            <rect x="7" y="1" width="3" height="10" fill="rgba(80,200,255,0.9)"/>
-          </svg>
-        </button>
-
-        <div id="seek-wrap">
-          <input type="range" id="seek" min="0" max="100" value="0" step="0.1">
-          <div id="time-row">
-            <span id="t-cur">00:00</span>
-            <span id="t-dur">00:00</span>
-          </div>
-        </div>
-
-        <div id="vol-wrap">
-          <svg id="vol-icon" width="14" height="14" viewBox="0 0 14 14" fill="none">
-            <polygon points="1,5 5,5 9,2 9,12 5,9 1,9" stroke="rgba(80,200,255,0.5)" stroke-width="1" fill="rgba(80,200,255,0.15)"/>
-            <path d="M10.5 4.5 Q13 7 10.5 9.5" stroke="rgba(80,200,255,0.5)" stroke-width="1" fill="none"/>
-          </svg>
-          <input type="range" id="vol" min="0" max="1" step="0.01" value="0.8">
-        </div>
-      </div>
-
-      <div id="status-row">
-        <span><span id="status-dot"></span><span id="status-txt">standby</span></span>
-        <span id="codec-txt">mp3 · 44.1khz</span>
-      </div>
-
-    </div>
+  <!-- audio status -->
+  <div id="audio-status">
+    <span id="status-dot"></span>
+    <span id="status-txt">playing</span>
   </div>
 
   <!-- swap src to your audio file -->
-  <audio id="audio" preload="metadata">
-    <source src="sixiene.mp3" type="audio/mpeg">
+  <audio id="audio" preload="metadata" loop>
+    <source src="sixieme.mp3" type="audio/mpeg">
     <!-- <source src="audio.ogg" type="audio/ogg"> -->
   </audio>
 
@@ -391,148 +193,117 @@
   function sph(lat, lon) {
     return { x: SPHERE_R*Math.cos(lat)*Math.cos(lon), y: SPHERE_R*Math.sin(lat), z: SPHERE_R*Math.cos(lat)*Math.sin(lon) };
   }
-  const nodes = Array.from({length:NODE_COUNT}, () => ({ lat:(Math.random()-0.5)*Math.PI, baseLon:Math.random()*2*Math.PI }));
-  const lines  = Array.from({length:LINE_COUNT}, () => {
-    const a=nodes[Math.floor(Math.random()*nodes.length)], b=nodes[Math.floor(Math.random()*nodes.length)], dir=Math.random()<0.5?1:-1;
-    return { node:dir>0?a:b, target:dir>0?b:a, ext:100+Math.random()*280, progress:Math.random(), speed:0.002+Math.random()*0.006, alpha:0.4+Math.random()*0.6, color:Math.random()<0.5?[80,200,255]:[0,120,255] };
+  const nodes = Array.from({length: NODE_COUNT}, () => ({ lat: (Math.random()-0.5)*Math.PI, baseLon: Math.random()*2*Math.PI }));
+  const lines  = Array.from({length: LINE_COUNT}, () => {
+    const a = nodes[Math.floor(Math.random()*nodes.length)];
+    const b = nodes[Math.floor(Math.random()*nodes.length)];
+    const dir = Math.random() < 0.5 ? 1 : -1;
+    return { node: dir>0?a:b, target: dir>0?b:a, ext: 100+Math.random()*280, progress: Math.random(), speed: 0.002+Math.random()*0.006, alpha: 0.4+Math.random()*0.6, color: Math.random()<0.5?[80,200,255]:[0,120,255] };
   });
 
-  function project(x,y,z,cx,cy){ const d=600/(600+z+300); return {px:cx+x*d,py:cy+y*d}; }
-  function rotX(p,a){ return {x:p.x,y:p.y*Math.cos(a)-p.z*Math.sin(a),z:p.y*Math.sin(a)+p.z*Math.cos(a)}; }
-  function gp(n){ return rotX(sph(n.lat,n.baseLon+rot),0.3); }
+  function project(x,y,z,cx,cy) { const d=600/(600+z+300); return {px:cx+x*d, py:cy+y*d}; }
+  function rotX(p,a) { return {x:p.x, y:p.y*Math.cos(a)-p.z*Math.sin(a), z:p.y*Math.sin(a)+p.z*Math.cos(a)}; }
+  function gp(n) { return rotX(sph(n.lat, n.baseLon+rot), 0.3); }
 
   function draw() {
-    const W=canvas.width,H=canvas.height,cx=W/2,cy=H/2+20;
+    const W=canvas.width, H=canvas.height, cx=W/2, cy=H/2+20;
     ctx.clearRect(0,0,W,H);
-    const g=ctx.createRadialGradient(cx,cy,0,cx,cy,SPHERE_R*2);
+
+    const g = ctx.createRadialGradient(cx,cy,0,cx,cy,SPHERE_R*2);
     g.addColorStop(0,'rgba(0,30,60,0.22)'); g.addColorStop(1,'rgba(0,0,0,0)');
     ctx.fillStyle=g; ctx.fillRect(0,0,W,H);
 
     ctx.strokeStyle='rgba(40,120,200,0.18)'; ctx.lineWidth=0.7;
     for(let i=0;i<=10;i++){
       const lat=-Math.PI/2+Math.PI*i/10; ctx.beginPath();
-      for(let j=0;j<=80;j++){ let p=rotX(sph(lat,2*Math.PI*j/80+rot),0.3); if(p.z+300<0)continue; const pr=project(p.x,p.y,p.z,cx,cy); j===0?ctx.moveTo(pr.px,pr.py):ctx.lineTo(pr.px,pr.py); }
+      for(let j=0;j<=80;j++){
+        let p=rotX(sph(lat,2*Math.PI*j/80+rot),0.3);
+        if(p.z+300<0) continue;
+        const pr=project(p.x,p.y,p.z,cx,cy);
+        j===0 ? ctx.moveTo(pr.px,pr.py) : ctx.lineTo(pr.px,pr.py);
+      }
       ctx.stroke();
     }
     for(let i=0;i<16;i++){
       const lon=2*Math.PI*i/16+rot; ctx.beginPath();
-      for(let j=0;j<=60;j++){ let p=rotX(sph(-Math.PI/2+Math.PI*j/60,lon),0.3); if(p.z+300<80)continue; const pr=project(p.x,p.y,p.z,cx,cy); j===0?ctx.moveTo(pr.px,pr.py):ctx.lineTo(pr.px,pr.py); }
+      for(let j=0;j<=60;j++){
+        let p=rotX(sph(-Math.PI/2+Math.PI*j/60,lon),0.3);
+        if(p.z+300<80) continue;
+        const pr=project(p.x,p.y,p.z,cx,cy);
+        j===0 ? ctx.moveTo(pr.px,pr.py) : ctx.lineTo(pr.px,pr.py);
+      }
       ctx.stroke();
     }
 
-    lines.forEach(l=>{
-      l.progress+=l.speed; if(l.progress>1)l.progress=0;
-      const np=gp(l.node),tp=gp(l.target);
-      const p0=project(np.x,np.y,np.z,cx,cy),p1=project(tp.x,tp.y,tp.z,cx,cy);
-      const dx=p1.px-p0.px,dy=p1.py-p0.py,len=Math.sqrt(dx*dx+dy*dy)||1;
-      const ox=p0.px+(dx/len)*l.ext,oy=p0.py+(dy/len)*l.ext;
+    lines.forEach(l => {
+      l.progress += l.speed;
+      if(l.progress > 1) l.progress = 0;
+      const np=gp(l.node), tp=gp(l.target);
+      const p0=project(np.x,np.y,np.z,cx,cy), p1=project(tp.x,tp.y,tp.z,cx,cy);
+      const dx=p1.px-p0.px, dy=p1.py-p0.py, len=Math.sqrt(dx*dx+dy*dy)||1;
+      const ox=p0.px+(dx/len)*l.ext, oy=p0.py+(dy/len)*l.ext;
       const [r,gb,b]=l.color;
       const grd=ctx.createLinearGradient(p0.px,p0.py,ox,oy);
-      grd.addColorStop(0,`rgba(${r},${gb},${b},0)`); grd.addColorStop(0.3,`rgba(${r},${gb},${b},${l.alpha*0.6})`); grd.addColorStop(1,`rgba(${r},${gb},${b},0)`);
+      grd.addColorStop(0,`rgba(${r},${gb},${b},0)`);
+      grd.addColorStop(0.3,`rgba(${r},${gb},${b},${l.alpha*0.6})`);
+      grd.addColorStop(1,`rgba(${r},${gb},${b},0)`);
       ctx.strokeStyle=grd; ctx.lineWidth=1.4;
       ctx.beginPath(); ctx.moveTo(p0.px,p0.py); ctx.lineTo(ox,oy); ctx.stroke();
-      const tx=p0.px+(ox-p0.px)*l.progress,ty=p0.py+(oy-p0.py)*l.progress;
-      ctx.beginPath(); ctx.arc(tx,ty,3,0,Math.PI*2); ctx.fillStyle=`rgba(${r},${gb},${b},${l.alpha})`; ctx.fill();
+      const tx=p0.px+(ox-p0.px)*l.progress, ty=p0.py+(oy-p0.py)*l.progress;
+      ctx.beginPath(); ctx.arc(tx,ty,3,0,Math.PI*2);
+      ctx.fillStyle=`rgba(${r},${gb},${b},${l.alpha})`; ctx.fill();
     });
 
-    nodes.forEach(n=>{
-      const p=gp(n); if(p.z+300<30)return;
-      const pr=project(p.x,p.y,p.z,cx,cy),vis=Math.min(1,(p.z+300)/350);
-      ctx.beginPath(); ctx.arc(pr.px,pr.py,3.5,0,Math.PI*2); ctx.fillStyle=`rgba(80,200,255,${0.8*vis})`; ctx.fill();
-      ctx.beginPath(); ctx.arc(pr.px,pr.py,8,0,Math.PI*2); ctx.fillStyle=`rgba(80,200,255,${0.12*vis})`; ctx.fill();
+    nodes.forEach(n => {
+      const p=gp(n); if(p.z+300<30) return;
+      const pr=project(p.x,p.y,p.z,cx,cy), vis=Math.min(1,(p.z+300)/350);
+      ctx.beginPath(); ctx.arc(pr.px,pr.py,3.5,0,Math.PI*2);
+      ctx.fillStyle=`rgba(80,200,255,${0.8*vis})`; ctx.fill();
+      ctx.beginPath(); ctx.arc(pr.px,pr.py,8,0,Math.PI*2);
+      ctx.fillStyle=`rgba(80,200,255,${0.12*vis})`; ctx.fill();
     });
 
     const sg=ctx.createRadialGradient(cx-50,cy-50,20,cx,cy,SPHERE_R);
     sg.addColorStop(0,'rgba(60,160,255,0.07)'); sg.addColorStop(0.6,'rgba(20,80,180,0.04)'); sg.addColorStop(1,'rgba(0,20,80,0.14)');
     ctx.beginPath(); ctx.arc(cx,cy,SPHERE_R,0,Math.PI*2); ctx.fillStyle=sg; ctx.fill();
 
-    rot+=0.004;
+    rot += 0.004;
     requestAnimationFrame(draw);
   }
   draw();
 
-  /* ─────────────── WAVEFORM BARS ─────────────── */
-  const waveEl = document.getElementById('waveform');
-  const BAR_COUNT = 40;
-  const bars = [];
-  for(let i=0;i<BAR_COUNT;i++){
-    const b = document.createElement('div');
-    b.className = 'bar';
-    const h = 4 + Math.random()*18;
-    b.style.height = h+'px';
-    waveEl.appendChild(b);
-    bars.push(b);
-  }
+  /* ─────────────── AUDIO CLICK TOGGLE ─────────────── */
+  const audio      = document.getElementById('audio');
+  const hint       = document.getElementById('hint');
+  const statusWrap = document.getElementById('audio-status');
+  const statusDot  = document.getElementById('status-dot');
+  const statusTxt  = document.getElementById('status-txt');
 
-  /* ─────────────── AUDIO PLAYER LOGIC ─────────────── */
-  const audio    = document.getElementById('audio');
-  const playBtn  = document.getElementById('play-btn');
-  const iconPlay = document.getElementById('icon-play');
-  const iconPause= document.getElementById('icon-pause');
-  const seekEl   = document.getElementById('seek');
-  const volEl    = document.getElementById('vol');
-  const tCur     = document.getElementById('t-cur');
-  const tDur     = document.getElementById('t-dur');
-  const statusDot= document.getElementById('status-dot');
-  const statusTxt= document.getElementById('status-txt');
-  const trackIcon= document.getElementById('track-icon');
-  const trackFile= document.getElementById('track-file');
-
-  let animBars = null;
-  let barPhases = bars.map(()=>Math.random()*Math.PI*2);
-  let barSpeeds = bars.map(()=>1.5+Math.random()*3);
-
-  function fmt(s){ const m=Math.floor(s/60); return String(m).padStart(2,'0')+':'+String(Math.floor(s%60)).padStart(2,'0'); }
-
-  function animateWave() {
-    const t = performance.now()/1000;
-    bars.forEach((b,i)=>{
-      const s = 0.15 + 0.85*Math.abs(Math.sin(t*barSpeeds[i]+barPhases[i]));
-      b.style.transform = `scaleY(${s})`;
-      b.style.height = (4+Math.random()*18)+'px';
-      b.classList.add('active');
-    });
-    animBars = requestAnimationFrame(animateWave);
-  }
-  function stopWave() {
-    if(animBars){ cancelAnimationFrame(animBars); animBars=null; }
-    bars.forEach(b=>{ b.style.transform='scaleY(0.2)'; b.classList.remove('active'); });
-  }
+  let started = false;
 
   function setPlaying(on) {
-    iconPlay.style.display  = on ? 'none'  : 'block';
-    iconPause.style.display = on ? 'block' : 'none';
-    statusDot.className     = on ? 'on' : '';
-    statusTxt.textContent   = on ? 'playing' : 'paused';
-    trackIcon.className     = on ? 'playing' : '';
-    if(on) animateWave(); else stopWave();
+    statusDot.className = on ? 'playing' : '';
+    statusTxt.textContent = on ? 'playing' : 'paused';
   }
 
-  playBtn.addEventListener('click', ()=>{
-    if(audio.paused){ audio.play().catch(()=>{}); } else { audio.pause(); }
+  document.addEventListener('click', () => {
+    if (!started) {
+      // first click — hide hint, show status
+      hint.classList.add('hidden');
+      setTimeout(() => { hint.style.display = 'none'; }, 600);
+      statusWrap.classList.add('visible');
+      started = true;
+    }
+    if (audio.paused) {
+      audio.play().catch(() => {});
+    } else {
+      audio.pause();
+    }
   });
 
-  audio.addEventListener('play',  ()=>setPlaying(true));
-  audio.addEventListener('pause', ()=>setPlaying(false));
-  audio.addEventListener('ended', ()=>setPlaying(false));
-
-  audio.addEventListener('loadedmetadata',()=>{
-    tDur.textContent = fmt(audio.duration);
-    trackFile.textContent = 'audio.mp3 · '+fmt(audio.duration)+' total';
-  });
-
-  audio.addEventListener('timeupdate',()=>{
-    if(!audio.duration) return;
-    seekEl.value = (audio.currentTime/audio.duration)*100;
-    tCur.textContent = fmt(audio.currentTime);
-  });
-
-  seekEl.addEventListener('input',()=>{
-    if(audio.duration) audio.currentTime = (seekEl.value/100)*audio.duration;
-  });
-
-  volEl.addEventListener('input',()=>{ audio.volume = volEl.value; });
-  audio.volume = 0.8;
+  audio.addEventListener('play',  () => setPlaying(true));
+  audio.addEventListener('pause', () => setPlaying(false));
+  audio.addEventListener('ended', () => setPlaying(false));
   </script>
 </body>
 </html>
