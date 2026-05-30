@@ -9,132 +9,51 @@
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     html, body { width: 100%; height: 100%; background: #000; overflow: hidden; cursor: pointer; }
     canvas { display: block; position: absolute; top: 0; left: 0; }
-
-    /* ── TITLE ── */
     #title {
-      position: absolute;
-      top: 38px;
-      width: 100%;
-      text-align: center;
-      font-family: 'Bebas Neue', sans-serif;
-      font-size: 64px;
-      letter-spacing: 18px;
-      color: #fff;
-      text-shadow: 0 0 30px rgba(80,200,255,0.7), 0 0 80px rgba(0,140,255,0.4);
-      pointer-events: none;
-      animation: floatTitle 4s ease-in-out infinite;
-      z-index: 20;
+      position: absolute; top: 38px; width: 100%; text-align: center;
+      font-family: 'Bebas Neue', sans-serif; font-size: 64px; letter-spacing: 18px;
+      color: #fff; text-shadow: 0 0 30px rgba(80,200,255,0.7), 0 0 80px rgba(0,140,255,0.4);
+      pointer-events: none; animation: floatTitle 4s ease-in-out infinite; z-index: 20;
     }
     @keyframes floatTitle {
       0%,100% { transform: translateY(0px);   text-shadow: 0 0 30px rgba(80,200,255,0.7), 0 0 80px rgba(0,140,255,0.4); }
       50%      { transform: translateY(-10px); text-shadow: 0 0 50px rgba(80,220,255,1),   0 0 120px rgba(0,160,255,0.6); }
     }
-
-    /* ── CLICK HINT ── */
     #hint {
-      position: absolute;
-      bottom: 36px;
-      width: 100%;
-      text-align: center;
-      font-family: 'Share Tech Mono', monospace;
-      font-size: 11px;
-      letter-spacing: 4px;
-      color: rgba(80,200,255,0.4);
-      text-transform: uppercase;
-      pointer-events: none;
-      z-index: 20;
-      transition: opacity 0.6s;
+      position: absolute; bottom: 36px; width: 100%; text-align: center;
+      font-family: 'Share Tech Mono', monospace; font-size: 11px; letter-spacing: 4px;
+      color: rgba(80,200,255,0.4); text-transform: uppercase; pointer-events: none;
+      z-index: 20; transition: opacity 0.6s;
     }
     #hint.hidden { opacity: 0; }
-
-    /* ── AUDIO STATUS PILL ── */
     #audio-status {
-      position: absolute;
-      bottom: 36px;
-      left: 50%;
-      transform: translateX(-50%);
-      font-family: 'Share Tech Mono', monospace;
-      font-size: 10px;
-      letter-spacing: 3px;
-      color: rgba(80,200,255,0.55);
-      text-transform: uppercase;
-      pointer-events: none;
-      z-index: 20;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      opacity: 0;
-      transition: opacity 0.5s;
+      position: absolute; bottom: 36px; left: 50%; transform: translateX(-50%);
+      font-family: 'Share Tech Mono', monospace; font-size: 10px; letter-spacing: 3px;
+      color: rgba(80,200,255,0.55); text-transform: uppercase; pointer-events: none;
+      z-index: 20; display: flex; align-items: center; gap: 8px; opacity: 0; transition: opacity 0.5s;
     }
     #audio-status.visible { opacity: 1; }
     #status-dot {
-      width: 6px; height: 6px;
-      border-radius: 50%;
-      background: rgba(80,200,255,0.4);
+      width: 6px; height: 6px; border-radius: 50%; background: rgba(80,200,255,0.4);
       transition: background 0.3s, box-shadow 0.3s;
     }
     #status-dot.playing {
-      background: rgba(80,200,255,1);
-      box-shadow: 0 0 8px rgba(80,200,255,0.8);
+      background: rgba(80,200,255,1); box-shadow: 0 0 8px rgba(80,200,255,0.8);
       animation: dotPulse 1.2s ease-in-out infinite;
     }
     @keyframes dotPulse {
       0%,100% { box-shadow: 0 0 4px rgba(80,200,255,0.5); }
       50%      { box-shadow: 0 0 14px rgba(80,200,255,1); }
     }
-
-    /* ── CENTER IMAGE ── */
     #center-image {
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      width: 180px;
-      height: 180px;
-      z-index: 15;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      animation: imgFloat 5s ease-in-out infinite;
-      pointer-events: none;
+      position: absolute; top: 50%; left: 50%; width: 180px; height: 180px;
+      z-index: 15; display: flex; align-items: center; justify-content: center;
+      animation: imgFloat 5s ease-in-out infinite; pointer-events: none;
     }
     #center-image img {
-      max-width: 100%;
-      max-height: 100%;
-      object-fit: contain;
-      display: block;
+      max-width: 100%; max-height: 100%; object-fit: contain; display: block;
       filter: drop-shadow(0 0 18px rgba(80,200,255,0.8)) drop-shadow(0 0 40px rgba(0,140,255,0.4));
       mix-blend-mode: screen;
-    }
-    #img-placeholder {
-      width: 160px;
-      height: 160px;
-      border: 1px dashed rgba(80,200,255,0.4);
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      gap: 10px;
-      color: rgba(80,200,255,0.45);
-      font-family: 'Share Tech Mono', monospace;
-      font-size: 10px;
-      letter-spacing: 2px;
-      text-transform: uppercase;
-      position: relative;
-    }
-    #img-placeholder::before {
-      content: '';
-      position: absolute;
-      inset: -1px;
-      background:
-        linear-gradient(rgba(80,200,255,0.6),rgba(80,200,255,0.6)) top    left  /14px 1px no-repeat,
-        linear-gradient(rgba(80,200,255,0.6),rgba(80,200,255,0.6)) top    left  /1px 14px no-repeat,
-        linear-gradient(rgba(80,200,255,0.6),rgba(80,200,255,0.6)) top    right /14px 1px no-repeat,
-        linear-gradient(rgba(80,200,255,0.6),rgba(80,200,255,0.6)) top    right /1px 14px no-repeat,
-        linear-gradient(rgba(80,200,255,0.6),rgba(80,200,255,0.6)) bottom left  /14px 1px no-repeat,
-        linear-gradient(rgba(80,200,255,0.6),rgba(80,200,255,0.6)) bottom left  /1px 14px no-repeat,
-        linear-gradient(rgba(80,200,255,0.6),rgba(80,200,255,0.6)) bottom right /14px 1px no-repeat,
-        linear-gradient(rgba(80,200,255,0.6),rgba(80,200,255,0.6)) bottom right /1px 14px no-repeat;
-      pointer-events: none;
     }
     @keyframes imgFloat {
       0%,100% { transform: translate(-50%,-50%) translateY(0px); }
@@ -143,44 +62,24 @@
   </style>
 </head>
 <body>
-
   <div id="title">GRIDLOCK</div>
   <canvas id="c"></canvas>
 
-  <!-- CENTER IMAGE
-       Uncomment the <img> tag and set src to your file.
-       PNG with transparency = cleanest result.
-       JPEG with white bg: mix-blend-mode:screen dissolves the white. -->
   <div id="center-image">
-    <!-- <img src="your-image.jpg" alt="subject"> -->
-    <div id="img-placeholder">
-      <svg width="40" height="40" viewBox="0 0 40 40" fill="none">
-        <rect x="1" y="1" width="38" height="38" rx="2" stroke="rgba(80,200,255,0.6)" stroke-width="1"/>
-        <circle cx="13" cy="13" r="4" stroke="rgba(80,200,255,0.6)" stroke-width="1"/>
-        <polyline points="1,27 13,15 21,23 29,14 39,27" stroke="rgba(80,200,255,0.6)" stroke-width="1" fill="none"/>
-      </svg>
-      <span>Jabber.jpg</span>
-      <span style="font-size:8px;opacity:0.5">replace src</span>
-    </div>
+    <img src="Jabber.png" alt="subject">
   </div>
 
-  <!-- click hint -->
   <div id="hint">[ click anywhere to play ]</div>
-
-  <!-- audio status -->
   <div id="audio-status">
     <span id="status-dot"></span>
     <span id="status-txt">playing</span>
   </div>
 
-  <!-- swap src to your audio file -->
   <audio id="audio" preload="metadata" loop>
     <source src="sixieme.mp3" type="audio/mpeg">
-    <!-- <source src="audio.ogg" type="audio/ogg"> -->
   </audio>
 
   <script>
-  /* ─────────────── CANVAS / SPHERE ─────────────── */
   const canvas = document.getElementById('c');
   const ctx    = canvas.getContext('2d');
   function resize() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
@@ -208,11 +107,9 @@
   function draw() {
     const W=canvas.width, H=canvas.height, cx=W/2, cy=H/2+20;
     ctx.clearRect(0,0,W,H);
-
     const g = ctx.createRadialGradient(cx,cy,0,cx,cy,SPHERE_R*2);
     g.addColorStop(0,'rgba(0,30,60,0.22)'); g.addColorStop(1,'rgba(0,0,0,0)');
     ctx.fillStyle=g; ctx.fillRect(0,0,W,H);
-
     ctx.strokeStyle='rgba(40,120,200,0.18)'; ctx.lineWidth=0.7;
     for(let i=0;i<=10;i++){
       const lat=-Math.PI/2+Math.PI*i/10; ctx.beginPath();
@@ -234,7 +131,6 @@
       }
       ctx.stroke();
     }
-
     lines.forEach(l => {
       l.progress += l.speed;
       if(l.progress > 1) l.progress = 0;
@@ -253,7 +149,6 @@
       ctx.beginPath(); ctx.arc(tx,ty,3,0,Math.PI*2);
       ctx.fillStyle=`rgba(${r},${gb},${b},${l.alpha})`; ctx.fill();
     });
-
     nodes.forEach(n => {
       const p=gp(n); if(p.z+300<30) return;
       const pr=project(p.x,p.y,p.z,cx,cy), vis=Math.min(1,(p.z+300)/350);
@@ -262,45 +157,33 @@
       ctx.beginPath(); ctx.arc(pr.px,pr.py,8,0,Math.PI*2);
       ctx.fillStyle=`rgba(80,200,255,${0.12*vis})`; ctx.fill();
     });
-
     const sg=ctx.createRadialGradient(cx-50,cy-50,20,cx,cy,SPHERE_R);
     sg.addColorStop(0,'rgba(60,160,255,0.07)'); sg.addColorStop(0.6,'rgba(20,80,180,0.04)'); sg.addColorStop(1,'rgba(0,20,80,0.14)');
     ctx.beginPath(); ctx.arc(cx,cy,SPHERE_R,0,Math.PI*2); ctx.fillStyle=sg; ctx.fill();
-
     rot += 0.004;
     requestAnimationFrame(draw);
   }
   draw();
 
-  /* ─────────────── AUDIO CLICK TOGGLE ─────────────── */
   const audio      = document.getElementById('audio');
   const hint       = document.getElementById('hint');
   const statusWrap = document.getElementById('audio-status');
   const statusDot  = document.getElementById('status-dot');
   const statusTxt  = document.getElementById('status-txt');
-
   let started = false;
-
   function setPlaying(on) {
     statusDot.className = on ? 'playing' : '';
     statusTxt.textContent = on ? 'playing' : 'paused';
   }
-
   document.addEventListener('click', () => {
     if (!started) {
-      // first click — hide hint, show status
       hint.classList.add('hidden');
       setTimeout(() => { hint.style.display = 'none'; }, 600);
       statusWrap.classList.add('visible');
       started = true;
     }
-    if (audio.paused) {
-      audio.play().catch(() => {});
-    } else {
-      audio.pause();
-    }
+    if (audio.paused) { audio.play().catch(() => {}); } else { audio.pause(); }
   });
-
   audio.addEventListener('play',  () => setPlaying(true));
   audio.addEventListener('pause', () => setPlaying(false));
   audio.addEventListener('ended', () => setPlaying(false));
